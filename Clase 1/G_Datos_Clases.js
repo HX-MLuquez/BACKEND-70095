@@ -1,0 +1,1 @@
+// Funciones especiales (funciones constructoras) Tipo de dato objeto

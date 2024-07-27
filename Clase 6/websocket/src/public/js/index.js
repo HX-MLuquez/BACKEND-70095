@@ -2,7 +2,7 @@ console.log("IN CLIENT");
 
 const userName = document.querySelector(".userName");
 const chatMessage = document.querySelector(".chatMessage");
-
+var uuid = "";
 const socket = io();
 
 var messages = [];
@@ -10,21 +10,23 @@ var messages = [];
 const updateMessagges = (newMessages) => {
   messages = [...newMessages];
 
-  chatMessage.innerHTML = messages.map((message) => {
-    if (message.info === "connection") {
-      return `<p class="connection">${message.message}</p>`;
-    } else {
-      return `
+  chatMessage.innerHTML = messages
+    .map((message) => {
+      if (message.info === "connection") {
+        return `<p class="connection">${message.message}</p>`;
+      } else {
+        return `
         <div class="messageUser">
           <h5>${message.name}</h5>
           <p>${message.message}</p>
         </div>
       `;
-    }
-  }).join('')
+      }
+    })
+    .join("");
 };
 
-var nameUser = "";
+
 // Mostrar el formulario de entrada de usuario
 Swal.fire({
   title: "Ingrese su información",
@@ -46,6 +48,7 @@ Swal.fire({
 }).then((result) => {
   console.log("-->", result);
   const { name, id } = result.value;
+  uuid = id;
   if (result.isConfirmed) {
     userName.textContent = name;
     socket.emit(`userConnect`, { user: name, id });
@@ -54,15 +57,39 @@ Swal.fire({
 
 socket.on("userConnect", (data) => {
   console.log(".....", data);
-  chatMessage.innerHTML = ""
-  updateMessagges(data)
+  chatMessage.innerHTML = "";
+  updateMessagges(data);
 });
 
 const btnMessage = document.getElementById("btnMessage");
-// inputMessage
+const inputMessage = document.getElementById("inputMessage");
 
 btnMessage.addEventListener("click", (e) => {
-    e.preventDefault();
-    console.log("tocando boton")
-})
+  e.preventDefault();
+  // console.log("tocando boton")
+  const message = inputMessage.value;
+  // console.log("tocando boton -> ", message)
+  // console.log("-----> ", userName.innerHTML)
+  socket.emit("userMessage", { message, user: userName.innerHTML });
+  inputMessage.value = "";
+});
 
+socket.on("userMessage", (data) => {
+  chatMessage.innerHTML = "";
+  updateMessagges(data);
+});
+
+const typing = document.querySelector(".typing");
+
+inputMessage.addEventListener("keypress", () => {
+  // console.log("-- keypress --")
+  socket.emit("typing", { user: userName.innerHTML });
+});
+
+socket.on("typing", (data) => {
+  // console.log("::", data);
+  typing.textContent = `...${data.user} esta escribiendo`
+});
+// socket.on(`client${uuid}`)
+
+// SOCKET ASYNC -> socketState

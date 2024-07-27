@@ -30,6 +30,7 @@ const messages = [];
 
 io.on("connection", (socket) => {
   console.log(`Usuario ${socket.id} Connection`);
+  
   socket.on("userConnect", (data) => {
     console.log(":::", data);
     let message = {
@@ -44,8 +45,23 @@ io.on("connection", (socket) => {
 
   });
 
-  
+  socket.on("userMessage", (data)=>{
+    console.log("||||||", data)
+    const message = {
+        id: socket.id, 
+        info: "message",
+        name: data.user,
+        message: data.message
+    }
+    messages.push(message)
+    // console.log("---> ", messages)
+    io.sockets.emit("userMessage", messages)
+  })
 
+  socket.on("typing", (data)=>{
+    // console.log(":: :: ::", data)
+    socket.broadcast.emit("typing", data)
+  })
 
   socket.on("disconnect", () => {
     console.log("Cliente desconectado:", socket.id);
